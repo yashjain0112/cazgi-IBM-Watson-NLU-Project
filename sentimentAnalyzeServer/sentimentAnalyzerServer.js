@@ -1,143 +1,131 @@
+
 const express = require('express');
+const dotenv = require('dotenv')
+const nluinstancecreator = require('./Middleware/IBMNewInstanceCreator')
+dotenv.config()
+
 const app = new express();
+
 app.use(express.static('client'))
 
 const cors_app = require('cors');
 app.use(cors_app());
 
-//This should be added by the learner on the basis of the learning in the modules 
-const dotenv = require('dotenv');
-const { request } = require('express');
-dotenv.config();
-const api_key = process.env.API_KEY;
-const api_url = process.env.API_URL;
-
-//add the getNLUInstance method here
-
-const getNLUInstance = () => {
-
-    const NaturalLanguageUnderstandingV1 = require('ibm-watson/natural-language-understanding/v1');
-    const { IamAuthenticator } = require('ibm-watson/auth');
-
-    const naturalLanguageUnderstanding = new NaturalLanguageUnderstandingV1({
-        version: '2020-08-01',
-        authenticator: new IamAuthenticator({
-            apikey: api_key,
-        }),
-        serviceUrl: api_url,
-    });
-    return naturalLanguageUnderstanding;
-}
-
-app.get("/", (req, res) => {
+app.get("/",(req,res)=>{
     res.render('index.html');
-});
+  });
 
-app.get("/url/emotion", (req, res) => {
-
-    const analyzeParams = {
-        'url': req.query.url,
+app.get("/url/emotion", (req,res) => {
+    const querytext = req.query.url
+    const newinstance = nluinstancecreator
+    const analyzeparams = {
+        'url': querytext,
         'features': {
-            'entities': {
+            'entities' : {
+                'emotion' : true,
+                'sentiment': false
+            }, 'keywords': {
                 'emotion': true,
-                'limit': 1
+                'sentiment': false
+
             }
-        }
+        } 
     }
 
-    const naturalLanguageUnderstanding = getNLUInstance();
-
-    naturalLanguageUnderstanding.analyze(analyzeParams)
-        .then(analysisResults => {
-            console.log(analysisResults);
-            console.log(JSON.stringify(analysisResults.result.entities[0].emotion, null, 2));
-            return res.send(analysisResults.result.entities[0].emotion, null, 2);
-            //return res.send(analysisResults);
-        })
-        .catch(err => {
-            return res.send("Could not do desired operation " + err);
-        });
-
+    newinstance.analyze(analyzeparams).then(analysisresults =>
+        {
+           const emotionalanalysis = analysisresults.result.entities[0].emotion
+            return res.send({emotions: emotionalanalysis});
+        }).catch( err =>
+            {
+                console.log(err)
+            })
 });
 
-app.get("/url/sentiment", (req, res) => {
-    const analyzeParams = {
-        'url': req.query.url,
+app.get("/url/sentiment", (req,res) => {
+    const querytext = req.query.url
+    const newinstance = nluinstancecreator
+    let sentimentresponse
+    const analyzeparams = {
+        'url': querytext,
         'features': {
-            'entities': {
+            'entities' : {
+                'sentiment' : true,
+                'emotion'  : false
+            }, 'keywords': {
                 'sentiment': true,
-                'limit': 1
+                'emotion': false
+
             }
-        }
+        } 
     }
 
-    const naturalLanguageUnderstanding = getNLUInstance();
-
-    naturalLanguageUnderstanding.analyze(analyzeParams)
-        .then(analysisResults => {
-            console.log(analysisResults);
-            console.log(JSON.stringify(analysisResults.result.entities[0].sentiment, null, 2));
-            return res.send(analysisResults.result.entities[0].sentiment.label, null, 2);
-            //return res.send(analysisResults);
-        })
-        .catch(err => {
-            return res.send("Could not do desired operation " + err);
-        });
-
+    newinstance.analyze(analyzeparams).then(analysisresults =>
+        {
+            console.log(JSON.stringify(analysisresults, null, 2))
+            sentimentresponse = analysisresults.result.entities[0].sentiment.label
+            return res.send({senti: sentimentresponse});
+        }).catch( err =>
+            {
+                console.log(err)
+            })
 });
 
-app.get("/text/emotion", (req, res) => {
-    const analyzeParams = {
-        'text': req.query.text,
+app.get("/text/emotion", (req,res) => {
+    const querytext = req.query.text
+    const newinstance = nluinstancecreator
+    const analyzeparams = {
+        'text': querytext,
         'features': {
-            'entities': {
+            'entities' : {
+                'emotion' : true,
+                'sentiment': false
+            }, 'keywords': {
                 'emotion': true,
-                'limit': 1
+                'sentiment': false
+
             }
-        }
+        } 
     }
 
-    const naturalLanguageUnderstanding = getNLUInstance();
-
-    naturalLanguageUnderstanding.analyze(analyzeParams)
-        .then(analysisResults => {
-            console.log(analysisResults);
-            //console.log(JSON.stringify(analysisResults.result.entities[0].emotion,null,2));
-            return res.send(analysisResults.result.entities[0].emotion, null, 2);
-            //return res.send(analysisResults);
-        })
-        .catch(err => {
-            return res.send("Could not do desired operation " + err);
-        });
-
+    newinstance.analyze(analyzeparams).then(analysisresults =>
+        {
+            const emotionalanalysis = analysisresults.result.entities[0].emotion
+            return res.send({emotions: emotionalanalysis});
+        }).catch( err =>
+            {
+                console.log(err)
+            })
 });
 
-app.get("/text/sentiment", (req, res) => {
-    const analyzeParams = {
-        'text': req.query.text,
+app.get("/text/sentiment", (req,res) => {
+    const querytext = req.query.text
+    const newinstance = nluinstancecreator
+    const analyzeparams = {
+        'text': querytext,
         'features': {
-            'entities': {
+            'entities' : {
+                'sentiment' : true,
+                'emotion'  : false
+            }, 'keywords': {
                 'sentiment': true,
-                'limit': 1
+                'emotion': false
+
             }
-        }
+        } 
     }
 
-    const naturalLanguageUnderstanding = getNLUInstance();
-
-    naturalLanguageUnderstanding.analyze(analyzeParams)
-        .then(analysisResults => {
-            console.log(analysisResults);
-            console.log(JSON.stringify(analysisResults.result.entities[0].sentiment, null, 2));
-            return res.send(analysisResults.result.entities[0].sentiment.label, null, 2);
-            //return res.send(analysisResults);
-        })
-        .catch(err => {
-            return res.send("Could not do desired operation " + err);
-        });
-
+    newinstance.analyze(analyzeparams).then(analysisresults =>
+        {
+            console.log(JSON.stringify(analysisresults, null, 2))
+            const sentimentresponse = analysisresults.result.entities[0].sentiment.label
+            return res.send({senti: sentimentresponse});
+        }).catch( err =>
+            {
+                console.log(err)
+            })
 });
 
 let server = app.listen(8080, () => {
     console.log('Listening', server.address().port)
-});
+})
